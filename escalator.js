@@ -82,8 +82,8 @@
 
 
 /* -----------------------------------------------------------------
- *	class: escalator 
- *		an object that runs functions synchronously - one step after the next ...
+ *	class: aEscalator 
+ *		an object that runs function synchronously - one step after the next ...
  *
  *	parameters: 
  *		id - {string} the id of the escalator
@@ -93,12 +93,12 @@
  * 	this - {object}
  *
  *	------------------------------------------------------------------*/
-var aEscalator = function(id, steps, debug) {
-	this.id = (id) ? id : VisualWebClient.funcs.makeId(6);
+aEscalator = function(id, steps, debug) {
+	this.id = (id) ? id : 'esc_' + Math.floor(Math.random()*1000000000);
 	this.debug = (typeof debug == 'boolean') ? debug : false;
 	this.steps = {};
 	this.stepsLeft = [];
-	if (jQuery.isArray(steps)) {
+	if (typeof steps === 'object' && typeof steps.length === 'number' && typeof steps.sort === 'function') {
 		for (var i = 0; i < steps.length; i++) {
 			this.add(steps[i]);
 		}
@@ -119,11 +119,11 @@ var aEscalator = function(id, steps, debug) {
  *	------------------------------------------------------------------*/
 aEscalator.prototype.defaultStep = function() {
 	var aStep = {
-		id: VisualWebClient.funcs.makeId(4), 
+		id: 'esc_' + Math.floor(Math.random()*1000000000), 
 		priority: (this.stepsLeft.length + 1) * 10, 
 		executor: function(next) { next(); return true; }, 
 		parameters: [], 
-		scope: document, 
+		scope: (typeof process === 'object') ? process : window, 
 		resetNeeded: false,
 		delay: 0
 	};
@@ -164,17 +164,25 @@ aEscalator.prototype.add = function(id, priority, executor, parameters, scope, r
 		};
 	}
 	var newStep = {};
-	jQuery.extend(true, newStep, defaultStep, thisStep);
-	if (jQuery.isFunction(newStep.executor) != true) return false;
+	for (var i in defaultStep) newStep[i] = defaultStep[i];
+	for (var i in thisStep) newStep[i] = thisStep[i];
+	
+	if (typeof newStep.executor !== 'function') {
+		if (this.debug == true) console.log('[escalator] no executor function! ' + newStep.id);
+		return false;
+	}
 	if (typeof newStep.priority != 'number') newStep.priority = (this.stepsLeft.length + 1) * 10;
-	if (jQuery.isArray(newStep.parameters) != true) newStep.parameters = [];
-	if (typeof newStep.scope != 'object') newStep.scope = document;
+	if (typeof newStep.parameters !== 'object' || typeof newStep.parameters.length !== 'number') newStep.parameters = [];
+	if (typeof newStep.scope != 'object') newStep.scope = (typeof process === 'object') ? process : window;
 	newStep.parameters.push(function() {
 		thisEscalator.next();
 	});
+	newStep.parameters.push(thisEscalator);
+	if (this.debug == true) console.log('[escalator] {' + this.id + '} step added: ' + newStep.id);
 	this.steps[newStep.id] = newStep;
 	if (newStep.resetNeeded) this.reset();
 	else this.update(this.steps[id]);
+	
 	return this;
 };
 
@@ -199,6 +207,7 @@ aEscalator.prototype.reset = function() {
 	return this;
 };
 
+
 /* -----------------------------------------------------------------
  *	method: aEscalator.prototype.reset
  *		reset this escalator - all steps are sorted by prio and added to a (pre-emptied) this.stepsLeft array
@@ -214,6 +223,7 @@ aEscalator.prototype.update = function(newStep) {
 	this.stepsLeft.sort(this.sorter);
 	return this;
 };
+
 
 /* -----------------------------------------------------------------
  *	method: aEscalator.prototype.remove
@@ -232,6 +242,7 @@ aEscalator.prototype.remove = function(id) {
 	return this;
 };
 
+
 /* -----------------------------------------------------------------
  *	method: aEscalator.prototype.finish
  *		triggers a finished event!
@@ -243,9 +254,14 @@ aEscalator.prototype.remove = function(id) {
  * 	this - {object}
  *
  *	------------------------------------------------------------------*/
-aEscalator.prototype.finish = function() {
-	if (this.debug == true ) console.log('[escalator] {' + this.id + '} triggered FISHED!');
-	if (jQuery.isFunction(this.onFinish)) this.onFinish(this);
+aEscalator.prototype.finish = function(err) {
+	if (typeof err != 'undefined') {
+		if (this.debug == true) console.log('[escalator] {' + this.id + '} triggered FINISHED WITH ERROR!!!');
+		this.error = err;
+	} else {
+		if (this.debug == true) console.log('[escalator] {' + this.id + '} triggered FINISHED!');
+	}
+	if (typeof this.onFinish === 'function') this.onFinish(this);
 	return this;
 };
 
@@ -279,26 +295,29 @@ aEscalator.prototype.start = function() {
  *
  *	------------------------------------------------------------------*/
 aEscalator.prototype.next = function() {
-	if (jQuery.isArray(this.stepsLeft) != true) return this;
+	if (typeof this.stepsLeft != 'object' || typeof this.stepsLeft.length !== 'number') return this;
 	if (this.stepsLeft.length < 1) {
 		return this.finish();
 	}
 	var thisStep = this.stepsLeft.shift();
 	this.finishedSteps.push(thisStep);
-	//console.dir(thisStep);
+	var myParameters = [];
+	for (var i in arguments) { myParameters.push(arguments[i]); };
+	for (var i in thisStep.parameters) { myParameters.push(thisStep.parameters[i]); };
 	if (this.debug == true) console.log('[escalator] {' + this.id + '} triggered NEXT step: (' + thisStep.id + ')');
 	try {
 		if (thisStep.delay > 0) {
 			thisStep.timeout = setTimeout(
-				function() { thisStep.executor.apply(thisStep.scope, thisStep.parameters); },
+				function() { thisStep.executor.apply(thisStep.scope, myParameters); },
 				thisStep.delay
 			);
 		} else {
-			thisStep.executor.apply(thisStep.scope, thisStep.parameters);
+				thisStep.executor.apply(thisStep.scope, myParameters);
 		}
 	} catch(err) {
 		console.log('[escalator] {' + this.id + '} triggered ERROR during step: (' + thisStep.id + ')');
-		console.dir(err);	}
+		console.dir(err);	
+	}
 	return this;
 };
 
@@ -329,7 +348,7 @@ aEscalator.prototype.sorter = function(a,b) {
 			module.exports = aEscalator;
 		}
 	} else {
-		if (typeof VisualWebClient == 'object') {
+		if (typeof VisualWebClient === 'object') {
 			VisualWebClient.classes.escalator = aEscalator;
 		} else {
 			// Exported as a string, for Closure Compiler "advanced" mode.
