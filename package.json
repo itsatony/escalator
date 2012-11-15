@@ -1,0 +1,14 @@
+{
+	"name"          : "escalator",
+	"description"   : "a javascript flow-control || step-wise execution system with between-step delays and in-execution step-manipulation and errorHandling",
+	"url"           : "http://github.com/itsatony/escalator",
+	"keywords"      : ["flow control", "steps", "javascript", "dynamic", "VisualWeb"],
+	"author"        : "Toni Wagner <i@itsatony.com>",
+	"contributors"  : [],
+	"licenses"      : ["MIT"],
+	"dependencies"  : [],
+	"main"          : "./lib/escalator",
+	"version"       : "0.2.0",
+	"directories"   : { "lib": "./lib" },
+	"engines"       : { "node": "> 0.6.00" }
+}
