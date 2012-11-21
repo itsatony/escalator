@@ -1,4 +1,5 @@
 var esc = require("../lib/escalator");
+var should = require('should');
 
 describe('Escalator', function() {
 	var firstStep = null;
@@ -22,7 +23,7 @@ describe('Escalator', function() {
 
 		secondStep = {
 			id : 'secondStep',
-			priority : 1,
+			priority : 2,
 
 			executor : function(next, thisEscelator) {
 				// console.log("secondstep");
@@ -32,37 +33,66 @@ describe('Escalator', function() {
 
 		lastStep = {
 			id : 'lastStep',
-			priority : 1,
-
+			priority : 3,
 			executor : function(next, thisEscelator) {
-				// console.log("lastStep");
 				next();
 			}
 		};
 
-/**
- *Test aEscalator constructor 
- */		myEscalator = new esc("escalatorId", [firstStep, secondStep]);
-
-		if (myEscalator.id === "escalatorId" && myEscalator.debug === false && myEscalator.catchErrors === false)
-			done();
+		/**
+		 *Test aEscalator constructor
+		 */
+		myEscalator = new esc("escalatorId", [firstStep, secondStep]);
+		should.exist(myEscalator);		done();
 	});
 
+  /**
+   *Test function aEscalator.finish() 
+   */
+	it('finish', function(done) {
+		myEscalator.onFinish = function() {
+			myEscalator.stepsLeft.should.be.empty
+			done();
+		}
+		myEscalator.start();
+
+	});
 	/**
 	 *Test function aEscalator.defaultStep()
 	 */
 	it('defaultStep', function(done) {
 		var defaultStep = myEscalator.defaultStep();
 
-		if ( typeof defaultStep.id === 'string' && typeof defaultStep.priority === 'number' && typeof defaultStep.executor === 'function' && typeof defaultStep.parameters === 'object' && typeof defaultStep.scope === 'object' && typeof defaultStep.resetNeeded === 'boolean' && typeof defaultStep.delay === 'number' && typeof defaultStep.catchErrors === 'boolean')
-			done();
+		defaultStep.id.should.be.a('string');
+		defaultStep.priority.should.be.a('number');
+		defaultStep.executor.should.be.a('function');
+		defaultStep.parameters.should.be.a('object');
+		defaultStep.scope.should.be.a('object');
+		defaultStep.resetNeeded.should.be.a('boolean');
+		defaultStep.delay.should.be.a('number');
+		defaultStep.catchErrors.should.be.a('boolean');
+		done();
 	});
 
+  /**
+   *Test function aEscalator.add() 
+   */
 	it('add', function(done) {
 		myEscalator.add(lastStep);
 
-		if ( typeof myEscalator.steps[lastStep.id] === 'object')
-			done();
+		myEscalator.steps[lastStep.id].should.be.a('object');
+		done();
+	});
+	
+	it('add priority', function (done) {
+	  
+	  myEscalator = new esc('addprioTest', [lastStep, firstStep, secondStep]);
+
+	  myEscalator.stepsLeft[0].id.should.equal(firstStep.id);
+	  myEscalator.stepsLeft[1].id.should.equal(secondStep.id);
+	  myEscalator.stepsLeft[2].id.should.equal(lastStep.id);
+	  myEscalator.start();
+		done();
 	});
 
 	/**
@@ -70,17 +100,17 @@ describe('Escalator', function() {
 	 */
 	it('reset', function(done) {
 		myEscalator.reset();
-		if (myEscalator.finishedSteps.length == 0 && myEscalator.stepsLeft.length > 0)
-			done();
+		myEscalator.finishedSteps.should.have.length(0);
+		myEscalator.stepsLeft.length.should.be.above(0);
+		done();
 	});	/**
 	 *Test function aEscalator.update()
 	 */
 	it('update', function(done) {
 		var size = myEscalator.stepsLeft.length;
 		myEscalator.update(lastStep);
-		if (myEscalator.stepsLeft.length == size + 1) {
-			done();
-		}
+		myEscalator.stepsLeft.should.have.length(size + 1);
+		done();
 	});
 
 	/**
@@ -89,32 +119,17 @@ describe('Escalator', function() {
 	it('remove', function(done) {
 		var size = myEscalator.stepsLeft.length;
 		myEscalator.remove(secondStep.id);
-
-		if (myEscalator.stepsLeft.length == size - 1) {
-			done();
-		}
+		myEscalator.stepsLeft.should.have.length(size - 1);
+		done();
 	});
-
-	/**
-	 *Test function aEscalator.finish()
-	 */
-	it('finish', function(done) {
-		// myEscalator.finish();		done();
-	});
-	/**
+	/**
 	 *Test function aEscalator.start()
 	 */
 	it('start', function(done) {
 		myEscalator.start();
+		myEscalator.stepsLeft.length.should.equal(0);
 		done();
-	});
-
-	/**
-	 *Test function aEscalator.next()
-	 */
-	// it('next', function (done) {
-	// myEscalator.next();
-	// });
+	});
 	/**
 	 *Test function aEscalator.sorter()
 	 */	it('sorter', function(done) {
@@ -125,9 +140,46 @@ describe('Escalator', function() {
 		var b = {
 			priority : 5
 		};
+		myEscalator.sorter(a, b).should.equal(0);
+		done();
 
-		if (myEscalator.sorter(a, b) == 0)
+	});
+
+
+  /**
+   *Test delay on one step with 500ms 
+   */
+	it('delay next', function(done) {
+		var timeFirstStep;
+		secondStep.delay = 500;
+
+		firstStep.executor = function(next, thisEscalator) {
+			timeFirstStep = new Date();
+			next();
+		}
+
+		secondStep.executor = function(next, thisEscalator) {
+			(new Date() - timeFirstStep).should.be.above(secondStep.delay);
 			done();
+			next();		}
 
-	});
+		myEscalator = new esc('testNextDelay', [firstStep, secondStep]);
+		var leftStepsLength = myEscalator.stepsLeft.length;
+		myEscalator.start();
+
+	});
+	
+	/**
+	 *Test if the given parameter in lastStep is available in executor 
+	 */
+	it('step parameter', function (done) {
+    lastStep.parameters = ['myparam'];
+    lastStep.executor = function (testParam, next, thisEscalator) {
+      testParam.should.equal(lastStep.parameters[0]);
+    }
+    myEscalator = new esc('addprioTest', [lastStep, firstStep, secondStep]);
+    myEscalator.start();
+    
+    done();
+  });
 });
