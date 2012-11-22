@@ -16,7 +16,8 @@ describe('Escalator', function() {
 			priority : 1,
 
 			executor : function(next, thisEscelator) {
-				// console.log("firststep");
+				// console.log("firststep");
+
 				next();
 			}
 		};
@@ -26,7 +27,8 @@ describe('Escalator', function() {
 			priority : 2,
 
 			executor : function(next, thisEscelator) {
-				// console.log("secondstep");
+				// console.log("secondstep");
+
 				next();
 			}
 		};
@@ -43,7 +45,8 @@ describe('Escalator', function() {
 		 *Test aEscalator constructor
 		 */
 		myEscalator = new esc("escalatorId", [firstStep, secondStep]);
-		should.exist(myEscalator);		done();
+		should.exist(myEscalator);
+		done();
 	});
 
   /**
@@ -103,7 +106,9 @@ describe('Escalator', function() {
 		myEscalator.finishedSteps.should.have.length(0);
 		myEscalator.stepsLeft.length.should.be.above(0);
 		done();
-	});	/**
+	});
+
+	/**
 	 *Test function aEscalator.update()
 	 */
 	it('update', function(done) {
@@ -122,17 +127,20 @@ describe('Escalator', function() {
 		myEscalator.stepsLeft.should.have.length(size - 1);
 		done();
 	});
-	/**
+
+	/**
 	 *Test function aEscalator.start()
 	 */
 	it('start', function(done) {
 		myEscalator.start();
 		myEscalator.stepsLeft.length.should.equal(0);
 		done();
-	});
+	});
+
 	/**
 	 *Test function aEscalator.sorter()
-	 */	it('sorter', function(done) {
+	 */
+	it('sorter', function(done) {
 
 		var a = {
 			priority : 5
@@ -161,7 +169,8 @@ describe('Escalator', function() {
 		secondStep.executor = function(next, thisEscalator) {
 			(new Date() - timeFirstStep).should.be.above(secondStep.delay);
 			done();
-			next();		}
+			next();
+		}
 
 		myEscalator = new esc('testNextDelay', [firstStep, secondStep]);
 		var leftStepsLength = myEscalator.stepsLeft.length;
@@ -181,5 +190,6 @@ describe('Escalator', function() {
     myEscalator.start();
     
     done();
-  });
+  });
+
 });
