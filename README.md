@@ -36,9 +36,14 @@ for our VisualWeb framework we thus developed a object/class called escalator th
  *	none yet ;(
  
 ## VERSIONS
+ *		- v0.2.2	fixes to default add values		18.12.2013	
+ *		- v0.2.0	initial public release		15.11.2012	
+  			- bug fixes
+ 	 		  - better error handling of steps
+ 		  	- optional try-catching of steps (allows for js engines to run optimizations if turned off)
  * v0.1.0	initial public release		08.05.2012			
-   * removed dependencies 
-   * enabled using the same file for client- and nodeJS server-side implementation
+   - removed dependencies 
+   - enabled using the same file for client- and nodeJS server-side implementation
  
 ## URLs
  * blogpost: <http://coffeelog.itsatony.com/escalator>
