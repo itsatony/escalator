@@ -10,5 +10,9 @@
 	"main"          : "./lib/escalator",
 	"version"       : "0.2.6",
 	"directories"   : { "lib": "./lib" },
-	"engines"       : { "node": "> 0.6.00" }
+	"engines"       : { "node": "> 0.6.00" },
+  "devDependencies": {
+		"mocha": "latest",
+		"should": "latest"
+  }
 }

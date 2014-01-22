@@ -54,7 +54,7 @@ describe('Escalator', function() {
    */
 	it('finish', function(done) {
 		myEscalator.onFinish = function() {
-			myEscalator.stepsLeft.should.be.empty
+			myEscalator.stepsLeft.should.be.empty;
 			done();
 		}
 		myEscalator.start();
@@ -66,14 +66,14 @@ describe('Escalator', function() {
 	it('defaultStep', function(done) {
 		var defaultStep = myEscalator.defaultStep();
 
-		defaultStep.id.should.be.a('string');
-		defaultStep.priority.should.be.a('number');
-		defaultStep.executor.should.be.a('function');
-		defaultStep.parameters.should.be.a('object');
-		defaultStep.scope.should.be.a('object');
-		defaultStep.resetNeeded.should.be.a('boolean');
-		defaultStep.delay.should.be.a('number');
-		defaultStep.catchErrors.should.be.a('boolean');
+		defaultStep.id.should.be.type('string');
+		defaultStep.priority.should.be.type('number');
+		defaultStep.executor.should.be.type('function');
+		defaultStep.parameters.should.be.type('object');
+		defaultStep.scope.should.be.type('object');
+		defaultStep.resetNeeded.should.be.type('boolean');
+		defaultStep.delay.should.be.type('number');
+		defaultStep.catchErrors.should.be.type('boolean');
 		done();
 	});
 
@@ -83,7 +83,7 @@ describe('Escalator', function() {
 	it('add', function(done) {
 		myEscalator.add(lastStep);
 
-		myEscalator.steps[lastStep.id].should.be.a('object');
+		myEscalator.steps[lastStep.id].should.be.type('object');
 		done();
 	});
 	
@@ -103,7 +103,7 @@ describe('Escalator', function() {
 	 */
 	it('reset', function(done) {
 		myEscalator.reset();
-		myEscalator.finishedSteps.should.have.length(0);
+		myEscalator.finishedSteps.length.should.equal(0);
 		myEscalator.stepsLeft.length.should.be.above(0);
 		done();
 	});
@@ -114,7 +114,7 @@ describe('Escalator', function() {
 	it('update', function(done) {
 		var size = myEscalator.stepsLeft.length;
 		myEscalator.update(lastStep);
-		myEscalator.stepsLeft.should.have.length(size + 1);
+		myEscalator.stepsLeft.length.should.equal(size + 1);
 		done();
 	});
 
@@ -124,7 +124,7 @@ describe('Escalator', function() {
 	it('remove', function(done) {
 		var size = myEscalator.stepsLeft.length;
 		myEscalator.remove(secondStep.id);
-		myEscalator.stepsLeft.should.have.length(size - 1);
+		myEscalator.stepsLeft.length.should.equal(size - 1);
 		done();
 	});
 
