@@ -155,26 +155,58 @@ describe('Escalator', function() {
 
 
   /**
+   *test shortCut add of executor function
+   */
+	it('shortCut add', function(done) {
+		var anEscalator = new esc('shortCutAdd', []);		
+		anEscalator.add(
+			function(n, tE) {
+				n();
+				done(); 				
+			}
+		);		
+		anEscalator.start();		
+	});
+	
+	
+  /**
+   *test onError
+   */
+	it('onError', function(done) {
+		var anEscalator = new esc('testOnError', []);		
+		anEscalator.add(
+			function(n, tE) { 
+				throw new Error("some test error");
+				n();
+			}
+		);		
+		anEscalator.onError = function(err, thisEsc) {
+			thisEsc.finish();
+			done();
+		};
+		anEscalator.start();		
+	});
+	
+	
+  /**
    *Test delay on one step with 500ms 
    */
 	it('delay next', function(done) {
 		var timeFirstStep;
-		secondStep.delay = 500;
-
+		var firstStep = {};
+		var secondStep = {};
 		firstStep.executor = function(next, thisEscalator) {
 			timeFirstStep = new Date();
 			next();
-		}
-
+		};
+		secondStep.delay = 500;
 		secondStep.executor = function(next, thisEscalator) {
-			(new Date() - timeFirstStep).should.be.above(secondStep.delay);
-			done();
+			(new Date() - timeFirstStep).should.be.above(secondStep.delay-1);
 			next();
-		}
-
-		myEscalator = new esc('testNextDelay', [firstStep, secondStep]);
-		var leftStepsLength = myEscalator.stepsLeft.length;
-		myEscalator.start();
+			done();
+		};
+		var anEscalator = new esc('testNextDelay', [firstStep, secondStep], true);
+		anEscalator.start();
 
 	});
 	
@@ -191,5 +223,5 @@ describe('Escalator', function() {
     
     done();
   });
-
+	
 });

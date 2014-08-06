@@ -36,6 +36,7 @@ for our VisualWeb framework we thus developed a object/class called escalator th
  *	none yet ;(
  
 ## VERSIONS
+ *    - v0.2.8  added onError checking and upon catchError onError will be called. if not there the escalator finishes.
  *		- v0.2.2	fixes to default add values		18.12.2013	
  *		- v0.2.0	initial public release		15.11.2012	
   			- bug fixes
